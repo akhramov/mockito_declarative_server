@@ -1,0 +1,18 @@
+[package]
+license = "MIT"
+name = "mockito_declarative_server"
+version = "0.1.0"
+authors = ["akhramov@pm.me"]
+homepage = "https://github.com/akhramov/mockito_declarative_server"
+edition = "2018"
+description = "yaml mock servers configuration for mockito"
+
+[dependencies]
+mockito = "0.25.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
+
+[dev-dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"

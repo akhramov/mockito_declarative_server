@@ -1,0 +1,6 @@
+* Mockito declarative server
+
+  This crate presents a way to populate [[https://github.com/lipanski/mockito][mockito]] mocks using yaml declarations.
+
+** Usage
+   For usage examples please check the tests at src/lib.rs
