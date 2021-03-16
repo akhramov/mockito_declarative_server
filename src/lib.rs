@@ -12,7 +12,14 @@ pub struct MockDefinition {
 pub struct MockRequest {
     pub method: String,
     pub path: Option<String>,
+    pub query: Option<Vec<MockQuery>>,
     pub headers: Option<Vec<MockHeader>>,
+}
+
+#[derive(Deserialize)]
+pub struct MockQuery {
+    pub parameter: String,
+    pub value: String,
 }
 
 #[derive(Deserialize)]
@@ -53,6 +60,12 @@ macro_rules! mock_server {
                 if let Some(headers) = request.headers {
                     for MockHeader { header, value } in headers {
                         mock = mock.match_header(&header, &value[..]);
+                    }
+                }
+
+                if let Some(query_params) = request.query {
+                    for MockQuery { parameter, value } in query_params {
+                        mock = mock.match_query(Matcher::UrlEncoded(parameter.into(), value.into()));
                     }
                 }
 
