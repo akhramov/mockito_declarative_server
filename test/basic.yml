@@ -47,3 +47,14 @@
         value: application/vnd.oci.image.layer.v1.tar+gzip
   response:
     body: ./basic/layer1
+
+- request:
+    method: GET
+    path: /somesite
+    query:
+      -
+        parameter: arguments
+        value: .*
+        regex: true
+  response:
+    body: ./basic/strange
