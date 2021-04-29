@@ -20,6 +20,7 @@ pub struct MockRequest {
 pub struct MockQuery {
     pub parameter: String,
     pub value: String,
+    pub regex: Option<bool>,
 }
 
 #[derive(Deserialize)]
@@ -64,8 +65,19 @@ macro_rules! mock_server {
                 }
 
                 if let Some(query_params) = request.query {
-                    for MockQuery { parameter, value } in query_params {
-                        mock = mock.match_query(Matcher::UrlEncoded(parameter.into(), value.into()));
+                    for MockQuery {
+                        parameter,
+                        value,
+                        regex,
+                    } in query_params
+                    {
+                        if let Some(true) = regex {
+                            mock = mock
+                                .match_query(Matcher::Regex(format!("{}={}", parameter, value)));
+                        } else {
+                            mock = mock
+                                .match_query(Matcher::UrlEncoded(parameter.into(), value.into()));
+                        }
                     }
                 }
 
@@ -102,8 +114,12 @@ mod test {
 
         let client = reqwest::Client::new();
 
-        let resp = client.get(format!("{}/{}", server, "v2/hash/manifests/hash/"))
-            .header("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+        let resp = client
+            .get(format!("{}/{}", server, "v2/hash/manifests/hash/"))
+            .header(
+                "Accept",
+                "application/vnd.docker.distribution.manifest.v2+json",
+            )
             .send()
             .await
             .expect("failed to make a request")
@@ -112,5 +128,28 @@ mod test {
             .expect("failed to parse the response");
 
         assert_eq!(resp["config"]["size"], 6668);
+    }
+
+    #[tokio::test]
+    async fn test_query_regex_matching() {
+        let (server, _mocks) = super::mock_server!("test/basic.yml");
+
+        let client = reqwest::Client::new();
+
+        let resp = client
+            .get(format!("{}/{}", server, "somesite"))
+            .query(&[("arguments", "lorem, ipsum, dolor")])
+            .header(
+                "Accept",
+                "application/vnd.docker.distribution.manifest.v2+json",
+            )
+            .send()
+            .await
+            .expect("failed to make a request")
+            .text()
+            .await
+            .expect("failed to parse the response");
+
+        assert_eq!(resp, "Ich bin nicht gut fuer dich");
     }
 }
